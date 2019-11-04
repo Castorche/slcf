@@ -1,17 +1,14 @@
 /*========================================
- *    sl.h: SL version 5.02
- *	Copyright 1993,2002,2014
- *                Toyoda Masashi
- *		  (mtoyoda@acm.org)
- *	Last Modified: 2014/06/03
+ *    slcf.h: SLCF version 1.00
+ *	Copyright 1993,2002,2014, 2019
+ Copyright 1993,1998,2014 Toyoda Masashi (mtoyoda@acm.org)
  *========================================
  */
 
-#define D51HEIGHT	10
+#define D51HEIGHT	11
 #define D51FUNNEL	 7
 #define D51LENGTH	83
 #define D51PATTERNS	 6
-
 
 #define D51STR1  "      ====        ________                ___________ "
 #define D51STR2  "  _D _|  |_______/        \\__I_I_____===__|_________| "
@@ -148,3 +145,12 @@
 #define C51WH12 "------'|oOo|=[]=-      ||      ||      |  ||=======_|__"
 #define C51WH13 "/~\\____|___|/~\\_|  O=======O=======O   |__|+-/~\\_|     "
 #define C51WH14 "\\_/         \\_/  \\____/  \\____/  \\____/      \\_/       "
+
+#define SLCFSTKHEIGHT 5
+#define SLCFSTKLENGTH 58
+#define SLCFSTK1 " +------------------------------------------------------+ "
+#define SLCFSTK2 " |           En raison d'un mouvement social,           | "
+#define SLCFSTK3 " |      le trafic est très perturbé sur votre ligne.    | "
+#define SLCFSTK4 " |    Veuillez nous excuser pour la gêne occassionnée.  | "
+#define SLCFSTK5 " +------------------------------------------------------+ "
+

@@ -1,10 +1,10 @@
-SL(1): Cure your bad habit of mistyping
+SLCF(1): Discover the french touch in trains
 =======================================
 
-SL (Steam Locomotive) runs across your terminal when you type "sl" as
-you meant to type "ls". It's just a joke command, and not useful at
-all.
+SLCF (Steam Locomotive des Chemins de Fer) lets you enjoy french transportation from your terminal.
+Simply type slcf, kick back and relax while enjoying the ride.
 
-Copyright 1993,1998,2014 Toyoda Masashi (mtoyoda@acm.org)
 
-![](demo.gif)
+Disclaimer: Any resemblance to real and actual names is purely coincidental.
+
+Based on SL: Copyright 1993,1998,2014 Toyoda Masashi (mtoyoda@acm.org)

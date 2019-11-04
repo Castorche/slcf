@@ -1,11 +1,11 @@
 /*========================================
- *    sl.c: SL version 5.03
- *        Copyright 1993,1998,2014-2015
- *                  Toyoda Masashi
- *                  (mtoyoda@acm.org)
- *        Last Modified: 2014/06/03
+ *    slcf.c: SLCF version 1.00
+ *        Copyright 1993,1998,2014-2015, 2019
+ Copyright 1993,1998,2014 Toyoda Masashi (mtoyoda@acm.org)
  *========================================
  */
+/* slcf version 1.00: All aboard!!
+                                                by Castorche      2019/11/03 */
 /* sl version 5.03 : Fix some more compiler warnings.                        */
 /*                                              by Ryan Jacobs    2015/01/19 */
 /* sl version 5.02 : Fix compiler warnings.                                  */
@@ -41,25 +41,37 @@
 #include <curses.h>
 #include <signal.h>
 #include <unistd.h>
+#include <time.h>
+#include <stdlib.h>
+#include <string.h>
 #include "sl.h"
 
 void add_smoke(int y, int x);
 void add_man(int y, int x);
+void add_striker(int y, int x, bool first);
 int add_C51(int x);
+int add_strike(int x);
+int add_strike_2(int x);
 int add_D51(int x);
 int add_sl(int x);
 void option(char *str);
 int my_mvaddstr(int y, int x, char *str);
+int pick_a_strike();
 
 int ACCIDENT  = 0;
 int LOGO      = 0;
 int FLY       = 0;
 int C51       = 0;
+int STRIKE    = 0;
+int IS_49_3   = 0;
+int SLEEPTIME = 40000;
+FILE *fp;
 
 int my_mvaddstr(int y, int x, char *str)
 {
     for ( ; x < 0; ++x, ++str)
         if (*str == '\0')  return ERR;
+    mvaddch(y,x-1,' ');
     for ( ; *str != '\0'; ++str, ++x)
         if (mvaddch(y, x, *str) == ERR)  return ERR;
     return OK;
@@ -75,6 +87,11 @@ void option(char *str)
             case 'F': FLY      = 1; break;
             case 'l': LOGO     = 1; break;
             case 'c': C51      = 1; break;
+            case 's':
+                STRIKE = 1 + (rand() % 2);
+                if (STRIKE == 2)
+	                SLEEPTIME = 100000;
+                break;
             default:                break;
         }
     }
@@ -83,12 +100,26 @@ void option(char *str)
 int main(int argc, char *argv[])
 {
     int x, i;
-
+    srand(time(NULL));
     for (i = 1; i < argc; ++i) {
         if (*argv[i] == '-') {
             option(argv[i] + 1);
         }
+        if(!(strcmp(argv[i], "--49.3")))
+        	IS_49_3 = 1;
     }
+    if(IS_49_3) {
+    	STRIKE = 0;
+    	SLEEPTIME = 40000;
+    } else {
+    	if(STRIKE == 0) {
+    		STRIKE = pick_a_strike();
+    		if(STRIKE == 2)
+    			SLEEPTIME = 100000;
+    	}
+    }
+
+    fp = fopen("/tmp/sl", "w");
     initscr();
     signal(SIGINT, SIG_IGN);
     noecho();
@@ -98,7 +129,13 @@ int main(int argc, char *argv[])
     scrollok(stdscr, FALSE);
 
     for (x = COLS - 1; ; --x) {
-        if (LOGO == 1) {
+    	if (STRIKE == 1) {
+        	if(add_strike(x) == ERR) break;
+        }
+        else if (STRIKE == 2) {
+        	if(add_strike_2(x) == ERR) break;
+        }
+        else if (LOGO == 1) {
             if (add_sl(x) == ERR) break;
         }
         else if (C51 == 1) {
@@ -109,14 +146,20 @@ int main(int argc, char *argv[])
         }
         getch();
         refresh();
-        usleep(40000);
+        usleep(SLEEPTIME);
     }
+    fclose(fp);
     mvcur(0, COLS - 1, LINES - 1, 0);
     endwin();
 
     return 0;
 }
 
+int pick_a_strike() {
+	int choice = rand() % 6;
+	if(choice == 0) return 0;
+	return 1 + (choice % 2);
+}
 
 int add_sl(int x)
 {
@@ -162,20 +205,20 @@ int add_sl(int x)
 int add_D51(int x)
 {
     static char *d51[D51PATTERNS][D51HEIGHT + 1]
-        = {{D51STR1, D51STR2, D51STR3, D51STR4, D51STR5, D51STR6, D51STR7,
+        = {{D51DEL, D51STR1, D51STR2, D51STR3, D51STR4, D51STR5, D51STR6, D51STR7,
             D51WHL11, D51WHL12, D51WHL13, D51DEL},
-           {D51STR1, D51STR2, D51STR3, D51STR4, D51STR5, D51STR6, D51STR7,
+           {D51DEL, D51STR1, D51STR2, D51STR3, D51STR4, D51STR5, D51STR6, D51STR7,
             D51WHL21, D51WHL22, D51WHL23, D51DEL},
-           {D51STR1, D51STR2, D51STR3, D51STR4, D51STR5, D51STR6, D51STR7,
+           {D51DEL, D51STR1, D51STR2, D51STR3, D51STR4, D51STR5, D51STR6, D51STR7,
             D51WHL31, D51WHL32, D51WHL33, D51DEL},
-           {D51STR1, D51STR2, D51STR3, D51STR4, D51STR5, D51STR6, D51STR7,
+           {D51DEL, D51STR1, D51STR2, D51STR3, D51STR4, D51STR5, D51STR6, D51STR7,
             D51WHL41, D51WHL42, D51WHL43, D51DEL},
-           {D51STR1, D51STR2, D51STR3, D51STR4, D51STR5, D51STR6, D51STR7,
+           {D51DEL, D51STR1, D51STR2, D51STR3, D51STR4, D51STR5, D51STR6, D51STR7,
             D51WHL51, D51WHL52, D51WHL53, D51DEL},
-           {D51STR1, D51STR2, D51STR3, D51STR4, D51STR5, D51STR6, D51STR7,
+           {D51DEL, D51STR1, D51STR2, D51STR3, D51STR4, D51STR5, D51STR6, D51STR7,
             D51WHL61, D51WHL62, D51WHL63, D51DEL}};
     static char *coal[D51HEIGHT + 1]
-        = {COAL01, COAL02, COAL03, COAL04, COAL05,
+        = {COALDEL, COAL01, COAL02, COAL03, COAL04, COAL05,
            COAL06, COAL07, COAL08, COAL09, COAL10, COALDEL};
 
     int y, i, dy = 0;
@@ -239,6 +282,64 @@ int add_C51(int x)
     return OK;
 }
 
+int add_strike(int x)
+{
+    static char *d51[D51PATTERNS][D51HEIGHT + 1]
+        = {{D51DEL, D51STR1, D51STR2, D51STR3, D51STR4, D51STR5, D51STR6, D51STR7,
+            D51WHL11, D51WHL12, D51WHL13, D51DEL},
+           {D51DEL, D51STR1, D51STR2, D51STR3, D51STR4, D51STR5, D51STR6, D51STR7,
+            D51WHL21, D51WHL22, D51WHL23, D51DEL},
+           {D51DEL, D51STR1, D51STR2, D51STR3, D51STR4, D51STR5, D51STR6, D51STR7,
+            D51WHL31, D51WHL32, D51WHL33, D51DEL},
+           {D51DEL, D51STR1, D51STR2, D51STR3, D51STR4, D51STR5, D51STR6, D51STR7,
+            D51WHL41, D51WHL42, D51WHL43, D51DEL},
+           {D51DEL, D51STR1, D51STR2, D51STR3, D51STR4, D51STR5, D51STR6, D51STR7,
+            D51WHL51, D51WHL52, D51WHL53, D51DEL},
+           {D51DEL, D51STR1, D51STR2, D51STR3, D51STR4, D51STR5, D51STR6, D51STR7,
+            D51WHL61, D51WHL62, D51WHL63, D51DEL}};
+    static char *coal[D51HEIGHT + 1]
+        = {COALDEL,COAL01, COAL02, COAL03, COAL04, COAL05,
+           COAL06, COAL07, COAL08, COAL09, COAL10, COALDEL};
+
+    int y, dy, i;
+    int REVERSE = 0;
+
+    if (x < - D51LENGTH - COLS - D51LENGTH +53)  return ERR;
+    if (x < - D51LENGTH + 43) REVERSE = 1;
+    y = LINES / 2 - 5;
+
+ 	if (FLY == 1) {
+        y = (x / 7) + LINES - (COLS / 7) - D51HEIGHT + REVERSE * (-2*(x/7) - LINES + (COLS/7) + D51HEIGHT - 5);
+ 		fprintf(fp, "REVERSE: %d YVALUE: %d\n", REVERSE, y);
+        dy = 1 - 2*REVERSE;
+    }
+    for (i = 0; i <= D51HEIGHT; ++i) {
+    	fprintf(fp, "VALUE: %d\n",  REVERSE * ( - 2*x - D51LENGTH +1) + x);
+        my_mvaddstr(y + i, REVERSE * (- 2*x + 1 - D51LENGTH) + x, d51[(D51LENGTH + x + REVERSE * (- 2*x + 1 - D51LENGTH)) % D51PATTERNS][i]);
+        my_mvaddstr(y + i +dy, x + REVERSE * ( - 2*x + 1 - D51LENGTH) + 53, coal[i]);
+    }
+    if(REVERSE) {
+    	add_striker(y+2, REVERSE * (- 2*x + 1 - D51LENGTH) + x + 43, true);
+    	add_striker(y+2, REVERSE * (- 2*x + 1 - D51LENGTH) + x + 47, false);
+    }
+    add_smoke(y - 1, x + REVERSE * (- 2*x + 1 - D51LENGTH) + D51FUNNEL);
+    return OK;
+}
+
+int add_strike_2(int x)
+{
+	static char *mess[SLCFSTKHEIGHT]
+		= {SLCFSTK1, SLCFSTK2, SLCFSTK3, SLCFSTK4, SLCFSTK5};
+	int y, i;
+	if (x < - SLCFSTKLENGTH) return ERR;
+	y = LINES / 2 - 5;
+
+	for (i = 0; i < SLCFSTKHEIGHT; ++i) {
+		my_mvaddstr(y+i, x, mess[i]);
+	}
+	return OK;
+}
+
 
 void add_man(int y, int x)
 {
@@ -250,6 +351,21 @@ void add_man(int y, int x)
     }
 }
 
+void add_striker(int y, int x, bool first)
+{
+	static char *striker_1[2][2] = {{"", "(0)"}, {"EN  GREVE!","\\0/"}};
+	static char *striker_2[2][2] = {{"", "(0)"}, {"","\\0/"}};
+	int i;
+	if(first) {
+		for (i = 0; i < 2; ++i) {
+			my_mvaddstr(y+i, x, striker_1[(LOGOLENGTH + x) / 12 % 2][i]);
+		}
+	} else {
+		for (i = 0; i < 2; ++i) {
+			my_mvaddstr(y+i, x, striker_2[(LOGOLENGTH + x) / 12 % 2][i]);
+		}
+	}
+}
 
 void add_smoke(int y, int x)
 #define SMOKEPTNS        16
